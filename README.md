@@ -1,4 +1,4 @@
-Projects and Homework from My Iron Yard Class
+Homework from My Iron Yard Class
 ========
 July 2014 Cohort
 
