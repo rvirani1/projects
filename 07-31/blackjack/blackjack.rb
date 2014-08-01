@@ -177,4 +177,8 @@ class Player
   def to_s
     puts "#{@name}: #{@money}"
   end
+
+  def bet(amount)
+    @money -= amount
+  end
 end
