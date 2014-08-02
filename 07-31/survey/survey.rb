@@ -23,9 +23,6 @@ class Survey
   def initialize(statements)
     @statements = statements
     @ratings = []
-    @highest = nil
-    @lowest = nil
-    @average = nil
   end
 
   def store_rating(input)
@@ -51,7 +48,8 @@ class Survey
   end
 
   def print_results
-    puts "The highest rating was #{@highest}"
+    calculate_results
+    puts "The highest rating was #{@ratings.max}"
     puts "The lowest rating was #{@lowest}"
     puts "The average rating was #{@average}"
   end

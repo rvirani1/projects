@@ -31,12 +31,101 @@ RANKS = [2, 3, 4, 5, 6, 7, 8, 9, 10, :J, :Q, :K, :A]
 BET = 10
 
 class Game
-  attr_accessor :players, :deck, :dealer
-  def initialize(*players)
-    @deck = Deck.new
-    @amount_bet = 0
-    @players = players || []
+  attr_reader :players, :deck, :dealer
+  def initialize(num_of_decks)
+    @deck = Deck.new(num_of_decks)
+    @players = []
     @dealer = Dealer.new
+  end
+
+  def new_player(index)
+    puts ""
+    puts "What's the #{ordinalize(index)} player's name?"
+    @players << Player.new(gets.chomp)
+  end
+
+  def play_round
+    get_bets
+    if active_players_in_round?
+      deal_cards
+      @players.each do |player|
+        if player.active
+          player.play(@deck)
+        end
+      end
+      @dealer.play(@deck)
+      evaluate_round
+    end
+  end
+
+  def get_bets
+    @players.each do |player|
+      player.bet if player.active
+    end
+    puts "All players have bet. The pot is now worth $#{pot}"
+    puts ""
+  end
+
+  def deal_cards
+    puts ""
+    puts "Dealing Cards"
+    @dealer.clear_hand
+    @dealer.hand.add(@deck.draw)
+    @dealer.print_initial_hand
+    @players.each do |player|
+      if player.active
+        player.clear_hand
+        player.hand.add(@deck.draw, @deck.draw)
+        player.print_hand
+      end
+
+    end
+  end
+
+  def active_players_in_round?
+    @players.each do |player|
+      return true unless player.hand.busted? || !player.active
+    end
+    false
+  end
+
+  def evaluate_round
+    @players.each do |player|
+      if ((player.hand.value > @dealer.hand.value) || @dealer.hand.busted?) && !player.hand.busted?
+        player.win_bet
+        puts "#{player.name} won this round. They bet #{player.bet_amount}, so they now have $#{player.money}"
+      elsif (player.hand.value == @dealer.hand.value) && !player.hand.busted?
+        player.push_bet
+        puts "#{player.name} got a push. They bet #{player.bet_amount}, so they now have $#{player.money}"
+      else
+        puts "#{player.name} lost this round. They bet #{player.bet_amount}, so they now have $#{player.money}"
+        player.active = false if player.money == 0
+      end
+    end
+  end
+
+  def pot
+    round_pot = 0
+    @players.each do |player|
+      round_pot += player.bet_amount
+    end
+    round_pot
+  end
+
+  def active?
+    @players.each do |player|
+        return true if player.active
+    end
+    false
+  end
+
+  def ordinalize(int)
+    case int
+      when 1; "#{int}st"
+      when 2; "#{int}nd"
+      when 3; "#{int}rd"
+      else    "#{int}th"
+    end
   end
 end
 
@@ -71,12 +160,14 @@ end
 
 class Deck
   attr_reader :cards, :drawn
-  def initialize
+  def initialize(num_of_decks)
     @cards = []
     @drawn = []
-    SUITS.each do |suit|
-      RANKS.each do |rank|
-        @cards << Card.new(rank, suit)
+    num_of_decks.times do
+      SUITS.each do |suit|
+        RANKS.each do |rank|
+          @cards << Card.new(rank, suit)
+        end
       end
     end
     @cards.shuffle!
@@ -90,9 +181,10 @@ class Deck
 end
 
 class Hand
-  attr_reader :cards
+  attr_accessor :cards, :finished
   def initialize
     @cards = []
+    @finished = false
   end
 
   def add(*new_cards)
@@ -153,17 +245,36 @@ class Dealer
     @hand.add(card)
   end
 
+  def print_initial_hand
+    puts "Dealer's side up card is #{@hand}"
+  end
+
+  def play(deck)
+    unless @hand.finished
+      puts "Starting dealer's turn for this hand"
+      @hand.add(deck.draw)
+      while @hand.value < 17
+        @hand.add(deck.draw)
+      end
+      puts "The dealer's hand is #{@hand} with a total of #{@hand.value}"
+    end
+  end
+
+  def clear_hand
+    @hand = Hand.new
+  end
 end
 
 class Player
-  attr_accessor :name, :money, :left, :lost, :hand
+  attr_accessor :name, :money, :standing, :active, :hand, :bet_amount
 
   def initialize(name)
     @name = name
     @money = 100
     @hand = Hand.new()
-    @left = false
-    @lost = false
+    @standing = false
+    @active = true
+    @bet_amount = 0
   end
 
   def hit(card)
@@ -171,14 +282,75 @@ class Player
   end
 
   def standing?
-    !(@left || @lost)
+    !(@standing || @active)
   end
 
   def to_s
     puts "#{@name}: #{@money}"
   end
 
-  def bet(amount)
-    @money -= amount
+
+  def bet
+    @bet_amount = 0
+    puts "#{@name}, how much would you like to bet? You currently have $#{@money}. Enter 0 to quit game"
+    bet_input = gets.chomp.to_i
+    while @money < bet_input
+      puts "#{@name} can't bet more than #{@name} has"
+      bet_input = gets.chomp.to_i
+    end
+    if bet_input == 0
+      @active = false
+    elsif @money >= bet_input
+      puts "#{@name} just bet $#{bet_input}"
+      @bet_amount = bet_input
+      @money -= bet_input
+    end
+  end
+
+  def print_hand
+    puts "#{@name}'s' hand is #{@hand} with a total of #{@hand.value}"
+  end
+
+  def play(deck)
+    if @hand.blackjack?
+      puts "#{@name} got a blackjack!"
+    end
+
+    until @hand.busted? || @hand.finished || @hand.blackjack? || !@active
+      puts "Would #{@name} like to hit or stand?"
+      case gets.chomp
+        when "hit"
+          puts "#{@name} decided to hit."
+          @hand.add(deck.draw)
+          puts "#{@name} hand is now #{@hand} with a value of #{@hand.value}"
+        when "stand"
+          puts "#{@name} decided to stand"
+          @hand.finished = true
+          puts "#{@name} hand is #{@hand} with a value of #{@hand.value}"
+        else
+          puts "#{@name} didn't enter hit or stand"
+      end
+
+      if @hand.blackjack?
+        puts "#{@name} got a blackjack!"
+      elsif @hand.busted?
+        puts "#{@name} busted!"
+      end
+
+    end
+  end
+
+  def clear_hand
+    @hand = Hand.new
+  end
+
+  def win_bet
+    @money += (2 * @bet_amount)
+    # @bet_amount = 0
+  end
+
+  def push_bet
+    @money += @bet_amount
+    # @bet_amount = 0
   end
 end

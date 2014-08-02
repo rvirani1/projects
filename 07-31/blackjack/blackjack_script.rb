@@ -1,17 +1,22 @@
 require 'pry'
 require './blackjack.rb'
 
+#game initialization
 puts "Starting the game"
-puts "What's your name?"
-game = Game.new(Player.new(gets.chomp))
-puts "How much would you like to bet? You currently have #{game.players.first.money}"
-game.players.first.bet(gets.chomp.to_i)
-puts "You just bet "
-#binding.pry
-# puts Player.new("Test Player").to_s
-game.dealer.hand.add(game.deck.draw)
-game.players.first.hand.add(game.deck.draw)
-puts "#{game.players.first.name}'s' hand is #{game.players.first.hand} with a total of #{game.players.first.hand.value}"
-puts "Dealer's hand is #{game.dealer.hand} with a total of #{game.dealer.hand.value}"
+puts "How many decks are you playing with?"
+game = Game.new(gets.chomp.to_i)
+puts "How many players are playing?"
+number_of_players = gets.chomp.to_i
+(1..number_of_players).each do |x|
+  game.new_player(x)
+end
 
+## hand loop
+puts "Starting the game"
+while game.active?
+  puts "Starting a round"
+  game.play_round
+  puts "Finishing a round"
+end
+puts "Exiting the game"
 

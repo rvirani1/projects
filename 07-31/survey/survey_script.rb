@@ -25,7 +25,6 @@ s.statements.each do |statement|
   s.print_statement(statement)
   s.store_rating(gets.chomp.to_i)
 end
-s.calculate_results
 s.print_results
 
 
