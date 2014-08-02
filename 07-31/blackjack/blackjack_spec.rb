@@ -24,7 +24,7 @@ end
 
 describe Deck do
   def setup
-    @deck = Deck.new
+    @deck = Deck.new(1)
   end
 
   it "has the right number of cards" do

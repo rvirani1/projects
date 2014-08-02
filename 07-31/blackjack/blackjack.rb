@@ -48,9 +48,11 @@ class Game
     get_bets
     if active_players_in_round?
       deal_cards
-      @players.each do |player|
-        if player.active
-          player.play(@deck)
+      unless @dealer.hand.blackjack?
+        @players.each do |player|
+          if player.active
+            player.play(@deck)
+          end
         end
       end
       @dealer.play(@deck)
@@ -70,7 +72,7 @@ class Game
     puts ""
     puts "Dealing Cards"
     @dealer.clear_hand
-    @dealer.hand.add(@deck.draw)
+    @dealer.hand.add(@deck.draw, @deck.draw)
     @dealer.print_initial_hand
     @players.each do |player|
       if player.active
@@ -84,7 +86,7 @@ class Game
 
   def active_players_in_round?
     @players.each do |player|
-      return true unless player.hand.busted? || !player.active
+      return true if player.active
     end
     false
   end
@@ -227,6 +229,10 @@ class Hand
     end
     array.join(", ")
   end
+
+  def first
+    @cards.first
+  end
 end
 
 class Dealer
@@ -246,18 +252,19 @@ class Dealer
   end
 
   def print_initial_hand
-    puts "Dealer's side up card is #{@hand}"
+    puts "Dealer's side up card is #{@hand.first}"
   end
 
   def play(deck)
-    unless @hand.finished
-      puts "Starting dealer's turn for this hand"
-      @hand.add(deck.draw)
-      while @hand.value < 17
-        @hand.add(deck.draw)
-      end
-      puts "The dealer's hand is #{@hand} with a total of #{@hand.value}"
+    puts "Starting dealer's turn for this hand"
+    if @hand.blackjack?
+      @hand.finished = true
+      puts "Dealer got a blackjack"
     end
+    until @hand.value >= 17 || @hand.finished
+      @hand.add(deck.draw)
+    end
+    puts "The dealer's hand is #{@hand} with a total of #{@hand.value}"
   end
 
   def clear_hand
