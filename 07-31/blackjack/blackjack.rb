@@ -32,7 +32,7 @@ BET = 10
 
 class Game
   attr_reader :players, :deck, :dealer
-  def initialize(num_of_decks)
+  def initialize(num_of_decks=1)
     @deck = Deck.new(num_of_decks)
     @players = []
     @dealer = Dealer.new
@@ -157,8 +157,6 @@ class Card
     @rank.to_s + @suit.to_s
   end
 end
-
-
 
 class Deck
   attr_reader :cards, :drawn
