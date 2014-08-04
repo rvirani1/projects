@@ -1,0 +1,45 @@
+---
+# A list of questions
+-
+  :question: "Why did the chicken cross the road?"
+  :choices:
+    - "Why does anyone do anything?"
+    - "To get to the other side"
+    - "Something something something YOUR MOM"
+    - "Mu"
+  :answer: 1
+-
+  :question: "Why?"
+  :choices:
+    - "to learn"
+    - "why not"
+  :answer: 0
+-
+  :question: "How?"
+  :choices:
+    - "with help"
+    - "why not"
+  :answer: 0
+-
+  :question: "Where?"
+  :choices:
+    - "ATV"
+    - "NYC"
+  :answer: 0
+
+
+
+# # An employee record
+# name: Example Developer
+# job: Developer
+# skill: Elite
+# employed: True
+# foods:
+#     - Apple
+#     - Orange
+#     - Strawberry
+#     - Mango
+# languages:
+#     ruby: Elite
+#     python: Elite
+#     dotnet: Lame
