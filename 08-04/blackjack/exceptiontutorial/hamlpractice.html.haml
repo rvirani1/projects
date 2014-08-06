@@ -1,0 +1,16 @@
+-#<div id='content'>
+-#  <div class='left column'>
+-#    <h2>Welcome to our site!</h2>
+-#    <p><%= print_information %></p>
+-#  </div>
+-#  <div class="right column">
+-#    <%= render :partial => "sidebar" %>
+-#  </div>
+-#</div>
+
+#content
+  .left.column
+    %h2 Welcome to our site!
+    %p= print_information
+  .right.column
+    = render :partial => "sidebar"
